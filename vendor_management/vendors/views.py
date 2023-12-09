@@ -1,6 +1,7 @@
 from rest_framework import generics
+from rest_framework.response import Response
 from .models import Vendor, PurchaseOrder
-from .serializers import VendorSerializer, PurchaseOrderSerializer
+from .serializers import VendorSerializer, PurchaseOrderSerializer, VendorPerformanceSerializer
 
 
 class VendorListCreateView(generics.ListCreateAPIView):
@@ -18,3 +19,17 @@ class PurchaseOrderListCreateView(generics.ListCreateAPIView):
 class PurchaseOrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = PurchaseOrder.objects.all()
     serializer_class = PurchaseOrderSerializer
+
+class VendorPerformanceView(generics.RetrieveAPIView):
+    queryset = Vendor.objects.all()
+    serializer_class = VendorPerformanceSerializer
+    lookup_field = 'id'
+    
+class AcknowledgePurchaseOrderView(generics.UpdateAPIView):
+    queryset = PurchaseOrder.objects.all()
+    serializer_class = PurchaseOrderSerializer
+    lookup_field = 'pk'
+
+    def perform_update(self, serializer):
+        serializer.save(acknowledgment_date=timezone.now())
+        serializer.instance.update_performance_metrics()  # Update performance metrics
